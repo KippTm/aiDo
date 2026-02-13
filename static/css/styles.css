@@ -1,0 +1,215 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar Styles */
+.notes-sidebar {
+    width: 320px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-header h2 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.add-note-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.add-note-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-note-btn:active {
+    transform: translateY(0);
+}
+
+/* Notes Stack */
+.notes-stack {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.notes-stack::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notes-stack::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notes-stack::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* Post-it Note Styles */
+.post-it {
+    position: relative;
+    width: 100%;
+    height: 60px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: bottom center;
+}
+
+.post-it-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #FFD93D;
+    border-radius: 4px;
+    padding: 12px 16px;
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.post-it:nth-child(2n) .post-it-inner {
+    background: #FFE066;
+}
+
+.post-it:nth-child(3n) .post-it-inner {
+    background: #FFEB99;
+}
+
+.post-it:nth-child(4n) .post-it-inner {
+    background: #FFF4CC;
+}
+
+.post-it::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent);
+    border-radius: 4px 4px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.post-it:hover::before {
+    opacity: 1;
+}
+
+.post-it-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.post-it-preview {
+    font-size: 13px;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.post-it:hover {
+    transform: translateY(-8px) scale(1.02);
+    z-index: 100;
+}
+
+.post-it:hover .post-it-inner {
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.15),
+        0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.post-it:hover .post-it-title {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.post-it:hover .post-it-preview {
+    opacity: 0.7;
+}
+
+.post-it.active .post-it-inner {
+    box-shadow: 
+        0 0 0 3px rgba(102, 126, 234, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Stacking effect for multiple notes */
+.post-it:not(:first-child) {
+    margin-top: -48px;
+}
+
+.post-it:not(:hover):not(.active) .post-it-inner {
+    transform: scale(0.98);
+}
+
+/* Main Content Area - Empty for now */
+.main-content {
+    flex: 1;
+    background: transparent;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .notes-sidebar {
+        width: 280px;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .note-viewer {
+        padding: 24px;
+    }
+}

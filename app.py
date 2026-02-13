@@ -22,3 +22,39 @@ with app.app_context():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/api/notes', methods=['GET'])
+def get_notes():
+    todos = db.ToDo.get_all()
+
+    todoList = []
+    for todo in todos:
+        todo.to_dict()
+
+    return jsonify(todoList)
+
+@app.route('/api/notes', methods=['POST'])
+def create_note():
+    data = request.get_data()
+
+    db.ToDo.create_note(data)
+    
+    return jsonify({
+        'status': 'success',
+        'message': 'Todo created successfully',
+        'note': data.get('title', '')
+    })
+
+@app.route('/api/notes/<int:note_id>', methods=['PUT'])
+def update_note(note_id):
+    """Update an existing note"""
+    data = request.get_json()
+    
+    db.ToDo.edit(data)
+
+@app.route('/api/notes/<int:note_id>', methods=['DELETE'])
+def delete_note(note_id):
+    db.ToDo.delete(note_id)
+
+if __name__ == '__main__':
+    app.run(debug=True, port=3000)
