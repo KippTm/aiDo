@@ -6,11 +6,11 @@ class ToDo(db.Model):
     __tablename__ = 'todo'
 
     # Keys
-    id = db.column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     
     # Data / information
-    title = db.column(db.Text, nullable=False)
-    content = db.column(db.Text)
+    title = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text)
 
     #metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

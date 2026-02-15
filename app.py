@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, jsonify, session
 
 # Local imports
 from models import db, init_db
+from models.todo import ToDo 
 
 load_dotenv()
 
@@ -23,38 +24,96 @@ with app.app_context():
 def index():
     return render_template('index.html')
 
+@app.route('/note_form')
+def note_form():
+    return render_template('note_form.html')
+
 @app.route('/api/notes', methods=['GET'])
 def get_notes():
-    todos = db.ToDo.get_all()
+    """Get all notes"""
+    todos = ToDo.get_all()
 
     todoList = []
     for todo in todos:
-        todo.to_dict()
+        todoList.append(todo.to_dict())
 
     return jsonify(todoList)
 
+@app.route('/api/notes/<int:note_id>', methods=['GET'])
+def get_note(note_id):
+    """Get a single note by ID"""
+    todo = ToDo.get_by_id(note_id)
+    if todo:
+        return jsonify(todo.to_dict())
+    return jsonify({'error': 'Note not found'}), 404
+
 @app.route('/api/notes', methods=['POST'])
 def create_note():
+    """Create a new note"""
     data = request.get_data()
 
-    db.ToDo.create_note(data)
-    
-    return jsonify({
-        'status': 'success',
-        'message': 'Todo created successfully',
-        'note': data.get('title', '')
-    })
+    print("Received data:", data)
+
+    try:
+        new_todo = ToDo.create(data)
+        return jsonify({
+            'status': 'success',
+            'message': 'Todo created successfully',
+            'note': new_todo.to_dict()
+        }), 201
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
 
 @app.route('/api/notes/<int:note_id>', methods=['PUT'])
 def update_note(note_id):
     """Update an existing note"""
     data = request.get_json()
     
-    db.ToDo.edit(data)
+    # Add the note_id to the data
+    data['id'] = note_id
+    
+    try:
+        updated_todo = ToDo.edit(data)
+        if updated_todo:
+            return jsonify({
+                'status': 'success',
+                'message': 'Todo updated successfully',
+                'note': updated_todo.to_dict()
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Todo not found'
+            }), 404
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
 
 @app.route('/api/notes/<int:note_id>', methods=['DELETE'])
 def delete_note(note_id):
-    db.ToDo.delete(note_id)
+    """Delete a note"""
+    try:
+        success = ToDo.delete(note_id)
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': 'Todo deleted successfully'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Todo not found'
+            }), 404
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)

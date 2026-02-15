@@ -6,6 +6,10 @@ let isEditing = false;
 // DOM elements
 const notesStack = document.getElementById('notesStack');
 const addNoteBtn = document.getElementById('addNoteBtn');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalClose = document.getElementById('modalClose');
+const modalTitle = document.getElementById('modalTitle');
+const noteIframe = document.getElementById('noteIframe');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Setup event listeners
 function setupEventListeners() {
-    addNoteBtn.addEventListener('click', createNewNote);
+    addNoteBtn.addEventListener('click', openNewNoteModal);
+    modalClose.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+    
+    // Listen for messages from iframe
+    window.addEventListener('message', handleIframeMessage);
 }
 
 // Load notes from server
@@ -83,15 +96,13 @@ function createPostItElement(note, index) {
     postIt.className = 'post-it';
     postIt.dataset.noteId = note.id;
     
-    // Get preview text (first 50 chars of content)
-    const preview = note.content ? 
-        note.content.substring(0, 50) + (note.content.length > 50 ? '...' : '') : 
-        'Empty note';
+    // Show title as the main visible text
+    const title = note.title || 'Untitled';
 
     postIt.innerHTML = `
         <div class="post-it-inner">
-            <div class="post-it-title">${escapeHtml(note.title || 'Untitled')}</div>
-            <div class="post-it-preview">${escapeHtml(preview)}</div>
+            <div class="post-it-title">${escapeHtml(title)}</div>
+            <div class="post-it-preview">${escapeHtml(title)}</div>
         </div>
     `;
 
@@ -111,40 +122,36 @@ function selectNote(note) {
     document.querySelector(`[data-note-id="${note.id}"]`)?.classList.add('active');
 }
 
-// Create new note
-async function createNewNote() {
-    try {
-        const response = await fetch('/api/notes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: 'New Note',
-                content: ''
-            })
-        });
+// Open modal for new note
+function openNewNoteModal() {
+    modalTitle.textContent = 'New Note';
+    noteIframe.src = '/note_form';
+    modalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
-        if (!response.ok) throw new Error('Failed to create note');
+// Open modal for editing note
+function openEditNoteModal(noteId) {
+    modalTitle.textContent = 'Edit Note';
+    noteIframe.src = `/note_form?id=${noteId}`;
+    modalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
-        const newNote = await response.json();
-        notes.push(newNote);
-        renderNotes();
-        selectNote(newNote);
-    } catch (error) {
-        console.error('Error creating note:', error);
-        
-        // Mock creation for testing
-        const newNote = {
-            id: Date.now(),
-            title: 'New Note',
-            content: '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-        notes.push(newNote);
-        renderNotes();
-        selectNote(newNote);
+// Close modal
+function closeModal() {
+    modalOverlay.classList.remove('active');
+    noteIframe.src = '';
+    document.body.style.overflow = '';
+}
+
+// Handle messages from iframe
+function handleIframeMessage(event) {
+    if (event.data.type === 'closeModal') {
+        closeModal();
+    } else if (event.data.type === 'noteSaved') {
+        // Reload notes after saving
+        loadNotes();
     }
 }
 
