@@ -48,33 +48,6 @@ async function loadNotes() {
     }
 }
 
-// Mock data for testing (remove when backend is ready)
-function mockNotes() {
-    return [
-        {
-            id: 1,
-            title: 'Shopping List',
-            content: 'Milk\nBread\nEggs\nCoffee',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            id: 2,
-            title: 'Meeting Notes',
-            content: 'Discuss project timeline\nReview budget\nAssign tasks',
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            updated_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-            id: 3,
-            title: 'Ideas',
-            content: 'New feature for app\nBlog post topics\nWeekend plans',
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            updated_at: new Date(Date.now() - 172800000).toISOString()
-        }
-    ];
-}
-
 // Render notes in the stack
 function renderNotes() {
     notesStack.innerHTML = '';

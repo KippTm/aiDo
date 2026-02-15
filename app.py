@@ -55,6 +55,9 @@ def create_note():
     print("Received data:", data)
 
     try:
+        if 'id' in data:
+            del data['id']
+
         new_todo = ToDo.create(data)
         return jsonify({
             'status': 'success',

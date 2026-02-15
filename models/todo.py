@@ -29,7 +29,6 @@ class ToDo(db.Model):
     @staticmethod
     def create(todo_data):
         new_todo = ToDo(
-            id = todo_data.get('id', ''),
             title = todo_data.get('title', ''),
             content = todo_data.get('content', ''),
             created_at = datetime.utcnow()
