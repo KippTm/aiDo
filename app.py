@@ -50,7 +50,7 @@ def get_note(note_id):
 @app.route('/api/notes', methods=['POST'])
 def create_note():
     """Create a new note"""
-    data = request.get_data()
+    data = request.get_json()
 
     print("Received data:", data)
 

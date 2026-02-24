@@ -1,168 +1,138 @@
-// State management
-let notes = [];
-let currentNote = null;
-let isEditing = false;
-
-// DOM elements
-const notesStack = document.getElementById('notesStack');
-const addNoteBtn = document.getElementById('addNoteBtn');
-const modalOverlay = document.getElementById('modalOverlay');
-const modalClose = document.getElementById('modalClose');
-const modalTitle = document.getElementById('modalTitle');
-const noteIframe = document.getElementById('noteIframe');
-
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    loadNotes();
-    setupEventListeners();
-});
+    // ---- Note Management Logic ----
+    const notesList = document.getElementById('notesList');
+    const newNoteBtn = document.getElementById('newNoteBtn');
+    const modalOverlay = document.getElementById('noteModal');
+    const noteIframe = document.getElementById('noteIframe');
+    const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Setup event listeners
-function setupEventListeners() {
-    addNoteBtn.addEventListener('click', openNewNoteModal);
-    modalClose.addEventListener('click', closeModal);
+    async function loadNotes() {
+        try {
+            const response = await fetch('/api/notes');
+            const notes = await response.json();
+            
+            notesList.innerHTML = '';
+            
+            notes.forEach(note => {
+                // Building the post-it stack programmatically
+                const postIt = document.createElement('div');
+                postIt.className = 'post-it';
+                
+                const inner = document.createElement('div');
+                inner.className = 'post-it-inner';
+                
+                const title = document.createElement('div');
+                title.className = 'post-it-title';
+                title.textContent = note.title;
+                
+                const preview = document.createElement('div');
+                preview.className = 'post-it-preview';
+                // Trim content slightly for the preview
+                preview.textContent = note.title ? note.title.substring(0, 45) + '...' : 'Empty note...';
+                
+                inner.appendChild(title);
+                inner.appendChild(preview);
+                postIt.appendChild(inner);
+                
+                postIt.addEventListener('click', () => openModal(note.id));
+                notesList.appendChild(postIt);
+            });
+        } catch (error) {
+            console.error('Failed to load notes:', error);
+        }
+    }
+
+    function openModal(noteId = null) {
+        const url = noteId ? `/note_form?id=${noteId}` : '/note_form';
+        noteIframe.src = url;
+        modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+        // Clear iframe source after transition finishes to prevent flicker
+        setTimeout(() => { noteIframe.src = ''; }, 300); 
+    }
+
+    newNoteBtn.addEventListener('click', () => openModal());
+    closeModalBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'closeModal') {
             closeModal();
+        } else if (event.data.type === 'noteSaved') {
+            loadNotes();
         }
     });
-    
-    // Listen for messages from iframe
-    window.addEventListener('message', handleIframeMessage);
-}
 
-// Load notes from server
-async function loadNotes() {
-    try {
-        const response = await fetch('/api/notes');
-        if (!response.ok) throw new Error('Failed to load notes');
+    // ---- Dynamic Calendar Logic ----
+    const calGrid = document.getElementById('calendarGrid');
+    const monthYearDisplay = document.getElementById('currentMonthYear');
+    let currentDate = new Date();
+
+    function renderCalendar() {
+        calGrid.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        days.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'cal-day-header';
+            header.textContent = day;
+            calGrid.appendChild(header);
+        });
+
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        notes = await response.json();
-        renderNotes();
-    } catch (error) {
-        console.error('Error loading notes:', error);
-        // If the API endpoint doesn't exist yet, you can test with mock data
-        // Uncomment below for testing without backend:
-        // notes = mockNotes();
-        // renderNotes();
+        const today = new Date();
+        const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+
+        // Blank spots for days before the 1st
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-day empty';
+            calGrid.appendChild(empty);
+        }
+
+        // Fill in the active days
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'cal-day';
+            dayEl.textContent = i;
+            
+            if (isCurrentMonth && i === today.getDate()) {
+                dayEl.classList.add('today');
+            }
+            
+            calGrid.appendChild(dayEl);
+        }
     }
-}
 
-// Render notes in the stack
-function renderNotes() {
-    notesStack.innerHTML = '';
-    
-    // Sort notes by updated_at (newest first)
-    const sortedNotes = [...notes].sort((a, b) => 
-        new Date(b.updated_at) - new Date(a.updated_at)
-    );
-
-    sortedNotes.forEach((note, index) => {
-        const postIt = createPostItElement(note, index);
-        notesStack.appendChild(postIt);
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
     });
-}
 
-// Create post-it element
-function createPostItElement(note, index) {
-    const postIt = document.createElement('div');
-    postIt.className = 'post-it';
-    postIt.dataset.noteId = note.id;
-    
-    // Show title as the main visible text
-    const title = note.title || 'Untitled';
-
-    postIt.innerHTML = `
-        <div class="post-it-inner">
-            <div class="post-it-title">${escapeHtml(title)}</div>
-            <div class="post-it-preview">${escapeHtml(title)}</div>
-        </div>
-    `;
-
-    postIt.addEventListener('click', () => selectNote(note));
-
-    return postIt;
-}
-
-// Select a note (just update active state for now)
-function selectNote(note) {
-    currentNote = note;
-    
-    // Update active state
-    document.querySelectorAll('.post-it').forEach(el => {
-        el.classList.remove('active');
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
     });
-    document.querySelector(`[data-note-id="${note.id}"]`)?.classList.add('active');
-}
 
-// Open modal for new note
-function openNewNoteModal() {
-    modalTitle.textContent = 'New Note';
-    noteIframe.src = '/note_form';
-    modalOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
+    // Calendar Sync Stub
+    document.getElementById('syncCalendarBtn').addEventListener('click', () => {
+        console.log("Initiate external calendar OAuth flow...");
+        alert("The frontend framework is ready! To fetch live events, you will need to set up OAuth 2.0 and API calls in your Flask backend.");
+    });
 
-// Open modal for editing note
-function openEditNoteModal(noteId) {
-    modalTitle.textContent = 'Edit Note';
-    noteIframe.src = `/note_form?id=${noteId}`;
-    modalOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-// Close modal
-function closeModal() {
-    modalOverlay.classList.remove('active');
-    noteIframe.src = '';
-    document.body.style.overflow = '';
-}
-
-// Handle messages from iframe
-function handleIframeMessage(event) {
-    if (event.data.type === 'closeModal') {
-        closeModal();
-    } else if (event.data.type === 'noteSaved') {
-        // Reload notes after saving
-        loadNotes();
-    }
-}
-
-// Utility functions
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-        return 'Today at ' + date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit' 
-        });
-    } else if (diffDays === 1) {
-        return 'Yesterday at ' + date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit' 
-        });
-    } else if (diffDays < 7) {
-        return diffDays + ' days ago';
-    } else {
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric' 
-        });
-    }
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
+    // Initialization
+    loadNotes();
+    renderCalendar();
+});

@@ -106,24 +106,14 @@ body {
     overflow: hidden;
 }
 
-.post-it:nth-child(2n) .post-it-inner {
-    background: #FFE066;
-}
-
-.post-it:nth-child(3n) .post-it-inner {
-    background: #FFEB99;
-}
-
-.post-it:nth-child(4n) .post-it-inner {
-    background: #FFF4CC;
-}
+.post-it:nth-child(2n) .post-it-inner { background: #FFE066; }
+.post-it:nth-child(3n) .post-it-inner { background: #FFEB99; }
+.post-it:nth-child(4n) .post-it-inner { background: #FFF4CC; }
 
 .post-it::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 20px;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent);
     border-radius: 4px 4px 0 0;
@@ -131,9 +121,7 @@ body {
     transition: opacity 0.3s;
 }
 
-.post-it:hover::before {
-    opacity: 1;
-}
+.post-it:hover::before { opacity: 1; }
 
 .post-it-title {
     font-size: 15px;
@@ -174,9 +162,7 @@ body {
     transform: translateY(0);
 }
 
-.post-it:hover .post-it-preview {
-    opacity: 0.7;
-}
+.post-it:hover .post-it-preview { opacity: 0.7; }
 
 .post-it.active .post-it-inner {
     box-shadow: 
@@ -184,7 +170,6 @@ body {
         0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-/* Stacking effect for multiple notes */
 .post-it:not(:first-child) {
     margin-top: -48px;
 }
@@ -193,13 +178,26 @@ body {
     transform: scale(0.98);
 }
 
-/* Main Content Area - Empty for now */
-.main-content {
-    flex: 1;
-    background: transparent;
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
 }
 
-/* Modal Styles */
+.modal-overlay.active { display: flex; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .modal-container {
     background: white;
     border-radius: 12px;
@@ -213,40 +211,9 @@ body {
     animation: slideUp 0.3s ease;
 }
 
-.modal-overlay.active {
-    display: flex;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.modal-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 700px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    animation: slideUp 0.3s ease;
-}
-
 @keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
@@ -269,7 +236,6 @@ body {
     font-size: 28px;
     color: #7f8c8d;
     cursor: pointer;
-    padding: 0;
     width: 32px;
     height: 32px;
     display: flex;
@@ -295,17 +261,166 @@ body {
     border: none;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .notes-sidebar {
-        width: 280px;
-    }
+/* Main Content Area (Calendar & Input) */
+.main-content {
+    flex: 1;
+    background: transparent;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
 
-    .main-content {
-        padding: 20px;
-    }
+.calendar-wrapper {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    margin-top: 40px;
+    border: 1px solid rgba(255,255,255,0.4);
+}
 
-    .note-viewer {
-        padding: 24px;
-    }
+.calendar-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.calendar-nav h2 {
+    font-size: 22px;
+    color: #2c3e50;
+    min-width: 180px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.calendar-nav button {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #2c3e50;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.calendar-nav button:hover {
+    background: #f5f7fa;
+    border-color: #cbd5e1;
+    transform: scale(1.05);
+}
+
+.sync-btn {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.sync-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.calendar-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+}
+
+.cal-day-header {
+    text-align: center;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cal-day {
+    aspect-ratio: 1;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: transform 0.2s, background 0.2s;
+    cursor: pointer;
+}
+
+.cal-day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.cal-day.empty {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    cursor: default;
+}
+
+.cal-day.empty:hover {
+    transform: none;
+}
+
+.cal-day.today {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.ask-question-wrapper {
+    position: absolute;
+    bottom: 40px;
+    width: 100%;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.ask-input-modern {
+    width: 100%;
+    padding: 20px 28px;
+    border-radius: 100px;
+    border: none;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    font-size: 16px;
+    color: #2c3e50;
+    outline: none;
+    transition: box-shadow 0.3s, transform 0.3s, background 0.3s;
+}
+
+.ask-input-modern:focus {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
 }

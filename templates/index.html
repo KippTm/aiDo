@@ -1,42 +1,59 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDo</title>
+    <title>Kippanize</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- Left sidebar for stacked notes -->
-        <div class="notes-sidebar">
+        <aside class="notes-sidebar">
             <div class="sidebar-header">
-                <h2>Notes</h2>
-                <button class="add-note-btn" id="addNoteBtn">+ New Note</button>
+                <h2>Kippanize</h2>
+                <button id="newNoteBtn" class="add-note-btn">+ New Note</button>
             </div>
-            <div class="notes-stack" id="notesStack">
-                <!-- Notes will be dynamically added here -->
-            </div>
-        </div>
+            
+            <div id="notesList" class="notes-stack">
+                </div>
+        </aside>
 
-        <!-- Main content area - empty for now -->
-        <div class="main-content">
-        </div>
+        <main class="main-content">
+            
+            <div class="calendar-wrapper">
+                <div class="calendar-header-modern">
+                    <div class="calendar-nav">
+                        <button id="prevMonth">&lt;</button>
+                        <h2 id="currentMonthYear">Month Year</h2>
+                        <button id="nextMonth">&gt;</button>
+                    </div>
+                    <button id="syncCalendarBtn" class="sync-btn" title="Sync External Calendar">
+                        ↻ Sync Google / Apple
+                    </button>
+                </div>
+                
+                <div class="calendar-grid-modern" id="calendarGrid">
+                    </div>
+            </div>
+
+            <div class="ask-question-wrapper">
+                <input type="text" placeholder="Ask a question..." class="ask-input-modern">
+            </div>
+        </main>
     </div>
 
-    <!-- Modal for creating/editing notes -->
-    <div class="modal-overlay" id="modalOverlay">
+    <div id="noteModal" class="modal-overlay">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 id="modalTitle">New Note</h3>
-                <button class="modal-close" id="modalClose">&times;</button>
+                <h3>Note Editor</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
             </div>
             <div class="modal-body">
-                <iframe id="noteIframe" src="" frameborder="0"></iframe>
+                <iframe id="noteIframe" src=""></iframe>
             </div>
         </div>
     </div>
-
 
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
