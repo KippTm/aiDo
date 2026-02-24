@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const preview = document.createElement('div');
                 preview.className = 'post-it-preview';
                 // Trim content slightly for the preview
-                preview.textContent = note.title ? note.title.substring(0, 45) + '...' : 'Empty note...';
+                preview.textContent = note.content ? note.content.substring(0, 45) + '...' : 'Empty note...';
                 
                 inner.appendChild(title);
                 inner.appendChild(preview);
